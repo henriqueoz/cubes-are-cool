@@ -1,3 +1,3 @@
-# FPS Camera
+# Cubes are Cool
 
-Learning how fps cameras work
+Just playing with 3d and learning how it works
