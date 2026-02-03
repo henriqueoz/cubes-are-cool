@@ -17,6 +17,8 @@ static CameraLook cameraLook{};
 static Vector3 cameraFront = {0.0f, 0.0f, 1.0f};
 static const Vector3 cameraUp = {0.0f, 1.0f, 0.0f};
 
+static bool isPaused = false;
+
 static void UpdateBody(Body3D &body) {
   const float deltaTime = GetFrameTime();
   const float speed = 5.0f * deltaTime;
@@ -60,9 +62,7 @@ static void UpdateCamera(Camera3D &camera, const Vector3 position) {
 
   cameraLook.pitch = std::clamp(cameraLook.pitch, -89.0f, 89.0f);
 
-  if (abs(cameraLook.yaw) >= 360.0f) {
-    cameraLook.yaw = 0.0f;
-  }
+  if (abs(cameraLook.yaw) > 360.0f) cameraLook.yaw = 0.0f;
 
   direction.x = cos(cameraLook.yaw * DEG2RAD) * cos(cameraLook.pitch * DEG2RAD);
   direction.y = sin(cameraLook.pitch * DEG2RAD);
@@ -86,33 +86,48 @@ int main(void) {
 
   InitWindow(1280, 720, "Coolest window");
 
-  while (!WindowShouldClose()) {
-    UpdateBody(body);
-    UpdateCamera(camera, body.position);
+  Texture2D faceTex = LoadTexture("resources/awesomeface.png");
+  GenTextureMipmaps(&faceTex);
 
+  while (!WindowShouldClose()) {
     if (IsCursorOnScreen()) {
       if (IsMouseButtonReleased(MOUSE_LEFT_BUTTON)) {
+        isPaused = false;
         DisableCursor();
       } else if (IsMouseButtonReleased(MOUSE_BUTTON_RIGHT)) {
+        isPaused = true;
         EnableCursor();
       }
+    }
+
+    if (!isPaused) {
+      UpdateBody(body);
+      UpdateCamera(camera, body.position);
     }
 
     BeginDrawing();
     ClearBackground({20, 20, 20, 255});
 
+    if (isPaused) {
+      DrawRectangle(0, 0, 1280, 720, ColorAlpha(GRAY, 0.5f));
+      DrawText("PAUSED", 0, 0, 24, WHITE);
+    }
+
     BeginMode3D(camera);
 
-    DrawPlane({0}, {100.0f, 100.0f}, ColorAlpha(GRAY, 0.5f));
+    RenderTexture2D();
+    DrawCube({0.0f, 5.0f, 0.0f}, 10.0f, 10.0f, 10.0f, PINK);
 
-    DrawLine3D({0}, {.y = 100.0f}, GREEN);
-    DrawLine3D({0}, {.y = -100.0f}, DARKGREEN);
+    DrawPlane({0.0f, -0.001f, 0.0f}, {200.0f, 200.0f}, ColorAlpha(GRAY, 0.5f));
 
-    DrawLine3D({0}, {.x = 100.0f}, RED);
-    DrawLine3D({0}, {.x = -100.0f}, PINK);
+    DrawLine3D({0}, {0.0f, 100.0f, 0.0f}, GREEN);
+    DrawLine3D({0}, {0.0f, -100.0f, 0.0f}, DARKGREEN);
 
-    DrawLine3D({0}, {.z = 100.0f}, BLUE);
-    DrawLine3D({0}, {.z = -100.0f}, DARKBLUE);
+    DrawLine3D({0}, {100.0f, 0.0f, 0.0f}, RED);
+    DrawLine3D({0}, {-100.0f, 0.0f, 0.0f}, PINK);
+
+    DrawLine3D({0}, {0.0f, 0.0f, 100.0f}, BLUE);
+    DrawLine3D({0}, {0.0f, 0.0f, -100.0f}, DARKBLUE);
 
     EndMode3D();
     EndDrawing();
