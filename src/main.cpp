@@ -23,6 +23,9 @@ static void UpdateBody(Body3D &body) {
 
   const std::int8_t foward = IsKeyDown(KEY_W) - IsKeyDown(KEY_S);
   const std::int8_t sideway = IsKeyDown(KEY_D) - IsKeyDown(KEY_A);
+  const std::int8_t upward =
+      IsKeyDown(KEY_SPACE) -
+      (IsKeyDown(KEY_LEFT_CONTROL) || IsKeyDown(KEY_LEFT_SHIFT));
 
   if (foward) {
     const Vector3 fowardMovement = Vector3Scale(cameraFront, speed * foward);
@@ -35,6 +38,12 @@ static void UpdateBody(Body3D &body) {
     const Vector3 sideMovement = Vector3Scale(right, speed * sideway);
 
     body.position = Vector3Add(body.position, sideMovement);
+  }
+
+  if (upward) {
+    const Vector3 upwardMovement = Vector3Scale(cameraUp, speed * upward);
+
+    body.position = Vector3Add(body.position, upwardMovement);
   }
 }
 
@@ -55,15 +64,13 @@ static void UpdateCamera(Camera3D &camera, const Vector3 position) {
     cameraLook.yaw = 0.0f;
   }
 
-  TraceLog(LOG_INFO, "yaw: %f pitch: %f", cameraLook.yaw, cameraLook.pitch);
-
   direction.x = cos(cameraLook.yaw * DEG2RAD) * cos(cameraLook.pitch * DEG2RAD);
   direction.y = sin(cameraLook.pitch * DEG2RAD);
   direction.z = sin(cameraLook.yaw * DEG2RAD) * cos(cameraLook.pitch * DEG2RAD);
 
-  cameraFront = Vector3Normalize(direction);
+  cameraFront = Vector3Normalize({direction.x, cameraFront.y, direction.z});
 
-  camera.target = Vector3Add(camera.position, cameraFront);
+  camera.target = Vector3Add(camera.position, direction);
 }
 
 int main(void) {
@@ -77,7 +84,7 @@ int main(void) {
   Body3D body = {};
   body.position = camera.position;
 
-  InitWindow(800, 600, "Coolest window");
+  InitWindow(1280, 720, "Coolest window");
 
   while (!WindowShouldClose()) {
     UpdateBody(body);
@@ -92,11 +99,20 @@ int main(void) {
     }
 
     BeginDrawing();
-    ClearBackground(BLACK);
+    ClearBackground({20, 20, 20, 255});
 
     BeginMode3D(camera);
 
-    DrawCube({0.0f}, 10.0f, 10.f, 10.0f, PINK);
+    DrawPlane({0}, {100.0f, 100.0f}, ColorAlpha(GRAY, 0.5f));
+
+    DrawLine3D({0}, {.y = 100.0f}, GREEN);
+    DrawLine3D({0}, {.y = -100.0f}, DARKGREEN);
+
+    DrawLine3D({0}, {.x = 100.0f}, RED);
+    DrawLine3D({0}, {.x = -100.0f}, PINK);
+
+    DrawLine3D({0}, {.z = 100.0f}, BLUE);
+    DrawLine3D({0}, {.z = -100.0f}, DARKBLUE);
 
     EndMode3D();
     EndDrawing();

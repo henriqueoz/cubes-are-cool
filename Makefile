@@ -1,5 +1,6 @@
 PROJECT_NAME = fps
 BUILD_DIR = build
+PLATFORM = windows
 
 .PHONY: build configure run
 
@@ -8,7 +9,11 @@ configure:
 	cmake -B $(BUILD_DIR) -S . -G "Ninja" -DCMAKE_BUILD_TYPE=Debug
 
 build:
-	@cmake --build $(BUILD_DIR) --config Release
+	@cmake --build $(BUILD_DIR)
 
 run:
-	./$(BUILD_DIR)/$(PROJECT_NAME)/$(PROJECT_NAME).exe
+ifeq ($(PLATFORM), windows)
+	@./$(BUILD_DIR)/$(PROJECT_NAME)/$(PROJECT_NAME).exe
+else
+	@./$(BUILD_DIR)/$(PROJECT_NAME)/$(PROJECT_NAME)
+endif

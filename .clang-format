@@ -1,0 +1,6 @@
+BasedOnStyle: Mozilla
+PointersAignment: Center
+ColumnWidth: 100
+TabWidth: 4
+IndentWidth: 4
+UseTab: Never
