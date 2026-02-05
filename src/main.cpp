@@ -88,13 +88,13 @@ int main(void) {
 
   InitWindow(1280, 720, "Coolest window");
 
-  Texture2D faceTex = LoadTexture("resources/textures/awesomeface.png");
-  GenTextureMipmaps(&faceTex);
+  Texture2D containerTex = LoadTexture("./resources/textures/container.jpg");
+  GenTextureMipmaps(&containerTex);
 
   const Mesh cubeMesh = GenMeshCube(20.0f, 20.0f, 20.0f);
   const Model cubeModel = LoadModelFromMesh(cubeMesh);
 
-  SetMaterialTexture(&cubeModel.materials[0], MATERIAL_MAP_DIFFUSE, faceTex);
+  SetMaterialTexture(&cubeModel.materials[0], MATERIAL_MAP_DIFFUSE, containerTex);
 
   SetTargetFPS(60);
 
@@ -124,24 +124,13 @@ int main(void) {
 
     BeginMode3D(camera);
 
-    DrawPlane({0.0f, -0.001f, 0.0f}, {200.0f, 200.0f}, ColorAlpha(GRAY, 0.5f));
-
-    DrawLine3D({0}, {0.0f, 100.0f, 0.0f}, GREEN);
-    DrawLine3D({0}, {0.0f, -100.0f, 0.0f}, DARKGREEN);
-
-    DrawLine3D({0}, {100.0f, 0.0f, 0.0f}, RED);
-    DrawLine3D({0}, {-100.0f, 0.0f, 0.0f}, PINK);
-
-    DrawLine3D({0}, {0.0f, 0.0f, 100.0f}, BLUE);
-    DrawLine3D({0}, {0.0f, 0.0f, -100.0f}, DARKBLUE);
-
     DrawModel(cubeModel, {0.0f}, 1.0f, WHITE);
 
     EndMode3D();
     EndDrawing();
   }
 
-  UnloadTexture(faceTex);
+  UnloadTexture(containerTex);
   UnloadModel(cubeModel);
 
   return 0;
