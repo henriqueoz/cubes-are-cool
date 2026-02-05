@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <cmath>
 #include <cstdint>
 
 #include "raylib.h"
@@ -62,7 +63,8 @@ static void UpdateCamera(Camera3D &camera, const Vector3 position) {
 
   cameraLook.pitch = std::clamp(cameraLook.pitch, -89.0f, 89.0f);
 
-  if (abs(cameraLook.yaw) > 360.0f) cameraLook.yaw = 0.0f;
+  if (abs(cameraLook.yaw) > 360.0f)
+    cameraLook.yaw = 0.0f;
 
   direction.x = cos(cameraLook.yaw * DEG2RAD) * cos(cameraLook.pitch * DEG2RAD);
   direction.y = sin(cameraLook.pitch * DEG2RAD);
@@ -86,8 +88,15 @@ int main(void) {
 
   InitWindow(1280, 720, "Coolest window");
 
-  Texture2D faceTex = LoadTexture("resources/awesomeface.png");
+  Texture2D faceTex = LoadTexture("resources/textures/awesomeface.png");
   GenTextureMipmaps(&faceTex);
+
+  const Mesh cubeMesh = GenMeshCube(20.0f, 20.0f, 20.0f);
+  const Model cubeModel = LoadModelFromMesh(cubeMesh);
+
+  SetMaterialTexture(&cubeModel.materials[0], MATERIAL_MAP_DIFFUSE, faceTex);
+
+  SetTargetFPS(60);
 
   while (!WindowShouldClose()) {
     if (IsCursorOnScreen()) {
@@ -115,9 +124,6 @@ int main(void) {
 
     BeginMode3D(camera);
 
-    RenderTexture2D();
-    DrawCube({0.0f, 5.0f, 0.0f}, 10.0f, 10.0f, 10.0f, PINK);
-
     DrawPlane({0.0f, -0.001f, 0.0f}, {200.0f, 200.0f}, ColorAlpha(GRAY, 0.5f));
 
     DrawLine3D({0}, {0.0f, 100.0f, 0.0f}, GREEN);
@@ -129,9 +135,14 @@ int main(void) {
     DrawLine3D({0}, {0.0f, 0.0f, 100.0f}, BLUE);
     DrawLine3D({0}, {0.0f, 0.0f, -100.0f}, DARKBLUE);
 
+    DrawModel(cubeModel, {0.0f}, 1.0f, WHITE);
+
     EndMode3D();
     EndDrawing();
   }
+
+  UnloadTexture(faceTex);
+  UnloadModel(cubeModel);
 
   return 0;
 }
