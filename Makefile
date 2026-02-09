@@ -13,7 +13,7 @@ build:
 
 run:
 ifeq ($(PLATFORM), windows)
-	@./$(BUILD_DIR)/bin/$(PROJECT_NAME).exe
+	@cd $(BUILD_DIR)/bin && $(PROJECT_NAME).exe
 else
 	@cd $(BUILD_DIR)/bin && ./$(PROJECT_NAME)
 endif
