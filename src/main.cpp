@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
+#include <math.h>
 
 #include "external/glad.h"
 #include "raylib.h"
@@ -104,23 +105,15 @@ main(void)
 
     InitWindow(1280, 720, "Coolest window");
 
-    Texture2D containerTex = LoadTexture("./resources/textures/container.jpg");
-    GenTextureMipmaps(&containerTex);
-
-    const Mesh cubeMesh = GenMeshCube(10.0f, 10.0f, 10.0f);
-    const Model cubeModel = LoadModelFromMesh(cubeMesh);
-
-    // SetMaterialTexture(&cubeModel.materials[0], MATERIAL_MAP_DIFFUSE, containerTex);
-
     const Shader lightShader = LoadShader("./resources/shaders/light.vert", "./resources/shaders/light.frag");
     const Shader sourceShader = LoadShader("./resources/shaders/source.vert", "./resources/shaders/source.frag");
 
     const int objectColorLoc = GetShaderLocation(lightShader, "objectColor");
     const int loightColorLoc = GetShaderLocation(lightShader, "lightColor");
 
-    cubeModel.materials[0].shader = lightShader;
+    const float orbitRadius = 15.0f;
 
-    const Vector3 lightPos = Vector3Scale({ 1.2f, 1.0f, 2.0f }, 5);
+    Vector3 lightPos = {orbitRadius, 6.0f, 0.0f};
 
     SetTargetFPS(60);
 
@@ -149,7 +142,7 @@ main(void)
             }
 
             float objectColor[3] = { 1.0f, 0.5f, 0.31f };
-            float lightColor[3] = { 1.0f, 1.0f, 1.0f };
+            float lightColor[3] = { 1.0f, 1.0f, .0f };
 
             SetShaderValueV(lightShader, objectColorLoc, objectColor, SHADER_UNIFORM_VEC3, 1);
             SetShaderValue(lightShader, loightColorLoc, lightColor, SHADER_UNIFORM_VEC3);
@@ -170,10 +163,15 @@ main(void)
             SetShaderValueMatrix(sourceShader, GetShaderLocation(sourceShader, "view"), view);
             SetShaderValueMatrix(sourceShader, GetShaderLocation(sourceShader, "model"), lightModel);
 
+            const float angle = GetTime() / 10.0f;
+
+            lightPos.x = orbitRadius * cosf(angle);
+            lightPos.z = orbitRadius * sinf(angle);
+
             BeginMode3D(camera);
 
                 BeginShaderMode(lightShader);
-                    DrawModel(cubeModel, Vector3Zero(), 1.0f, BLANK);
+                    DrawCube(Vector3Zero(), 10.0f, 10.0f, 10.0f, BLANK);
                 EndShaderMode();
 
                 BeginShaderMode(sourceShader);
@@ -183,9 +181,6 @@ main(void)
             EndMode3D();
         EndDrawing();
     }
-
-    UnloadTexture(containerTex);
-    UnloadModel(cubeModel);
 
     return 0;
 }
