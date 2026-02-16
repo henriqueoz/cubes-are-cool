@@ -109,7 +109,8 @@ main(void)
     const Shader sourceShader = LoadShader("./resources/shaders/source.vert", "./resources/shaders/source.frag");
 
     const int objectColorLoc = GetShaderLocation(lightShader, "objectColor");
-    const int loightColorLoc = GetShaderLocation(lightShader, "lightColor");
+    const int lightColorLoc = GetShaderLocation(lightShader, "lightColor");
+    const int lightPosLoc = GetShaderLocation(lightShader, "lightPos");
 
     const float orbitRadius = 15.0f;
 
@@ -144,8 +145,9 @@ main(void)
             float objectColor[3] = { 1.0f, 0.5f, 0.31f };
             float lightColor[3] = { 1.0f, 1.0f, .0f };
 
-            SetShaderValueV(lightShader, objectColorLoc, objectColor, SHADER_UNIFORM_VEC3, 1);
-            SetShaderValue(lightShader, loightColorLoc, lightColor, SHADER_UNIFORM_VEC3);
+            SetShaderValue(lightShader, objectColorLoc, objectColor, SHADER_UNIFORM_VEC3);
+            SetShaderValue(lightShader, lightColorLoc, lightColor, SHADER_UNIFORM_VEC3);
+            SetShaderValue(lightShader, lightPosLoc, Vector3ToFloat(lightPos), SHADER_UNIFORM_VEC3);
 
             float aspect = (float)GetScreenWidth() / (float)GetScreenHeight();
 
