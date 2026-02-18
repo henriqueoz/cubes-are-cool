@@ -3,9 +3,10 @@
 #include <cstdint>
 #include <math.h>
 
-#include "external/glad.h"
+#include "external/glfw/deps/glad/gl.h"
 #include "raylib.h"
 #include "raymath.h"
+#include "rlgl.h"
 
 struct Body3D
 {
@@ -116,6 +117,23 @@ main(void)
 
     Vector3 lightPos = {orbitRadius, 6.0f, 0.0f};
 
+    Mesh cubeMesh = GenMeshCube(10.0f, 10.0f, 10.0f);
+    Mesh sourceMesh = GenMeshCube(2.0f, 2.0f, 2.0f);
+
+    Model cubeModel = LoadModelFromMesh(cubeMesh);
+    Model sourceModel = LoadModelFromMesh(sourceMesh);
+
+    cubeModel.materials[0].shader = lightShader;
+    cubeModel.materials[0].shader.locs[SHADER_LOC_MATRIX_PROJECTION] = GetShaderLocation(lightShader, "projection");
+    cubeModel.materials[0].shader.locs[SHADER_LOC_MATRIX_VIEW] = GetShaderLocation(lightShader, "view");
+    cubeModel.materials[0].shader.locs[SHADER_LOC_MATRIX_MODEL] = GetShaderLocation(lightShader, "model");
+
+
+    sourceModel.materials[0].shader = sourceShader;
+    sourceModel.materials[0].shader.locs[SHADER_LOC_MATRIX_PROJECTION] = GetShaderLocation(sourceShader, "projection");
+    sourceModel.materials[0].shader.locs[SHADER_LOC_MATRIX_VIEW] = GetShaderLocation(sourceShader, "view");
+    sourceModel.materials[0].shader.locs[SHADER_LOC_MATRIX_MODEL] = GetShaderLocation(sourceShader, "model");
+
     SetTargetFPS(60);
 
     while (!WindowShouldClose()) {
@@ -143,46 +161,32 @@ main(void)
             }
 
             float objectColor[3] = { 1.0f, 0.5f, 0.31f };
-            float lightColor[3] = { 1.0f, 1.0f, .0f };
+            float lightColor[3] = { 1.0f, 1.0f, 1.0f };
 
             SetShaderValue(lightShader, objectColorLoc, objectColor, SHADER_UNIFORM_VEC3);
             SetShaderValue(lightShader, lightColorLoc, lightColor, SHADER_UNIFORM_VEC3);
             SetShaderValue(lightShader, lightPosLoc, Vector3ToFloat(lightPos), SHADER_UNIFORM_VEC3);
 
-            float aspect = (float)GetScreenWidth() / (float)GetScreenHeight();
-
-            Matrix projection = MatrixPerspective(camera.fovy * DEG2RAD, aspect, 0.1f, 100.0f);
-            Matrix view = GetCameraMatrix(camera);
-
-            Matrix model = MatrixIdentity();
-            Matrix lightModel = MatrixTranslate(lightPos.x, lightPos.y, lightPos.z);
-
-            SetShaderValueMatrix(lightShader, GetShaderLocation(lightShader, "projection"), projection);
-            SetShaderValueMatrix(lightShader, GetShaderLocation(lightShader, "view"), view);
-            SetShaderValueMatrix(lightShader, GetShaderLocation(lightShader, "model"), model);
-
-            SetShaderValueMatrix(sourceShader, GetShaderLocation(sourceShader, "projection"), projection);
-            SetShaderValueMatrix(sourceShader, GetShaderLocation(sourceShader, "view"), view);
-            SetShaderValueMatrix(sourceShader, GetShaderLocation(sourceShader, "model"), lightModel);
-
-            const float angle = GetTime() / 10.0f;
+            const float speed = 1.5f;
+            const float angle = GetTime() * speed;
 
             lightPos.x = orbitRadius * cosf(angle);
             lightPos.z = orbitRadius * sinf(angle);
 
             BeginMode3D(camera);
 
-                BeginShaderMode(lightShader);
-                    DrawCube(Vector3Zero(), 10.0f, 10.0f, 10.0f, BLANK);
-                EndShaderMode();
-
-                BeginShaderMode(sourceShader);
-                    DrawCube(lightPos, 2.0f, 2.0f, 2.0f, BLANK);
-                EndShaderMode();
+                    DrawModel(cubeModel, Vector3Zero(), 1.0f, BLANK);
+                    DrawModel(sourceModel, lightPos, 1.0f, BLANK);
 
             EndMode3D();
         EndDrawing();
     }
+
+    UnloadModel(cubeModel);
+    UnloadModel(sourceModel);
+
+    UnloadShader(lightShader);
+    UnloadShader(sourceShader);
 
     return 0;
 }
