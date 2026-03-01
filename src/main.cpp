@@ -112,6 +112,7 @@ main(void)
     const int objectColorLoc = GetShaderLocation(lightShader, "objectColor");
     const int lightColorLoc = GetShaderLocation(lightShader, "lightColor");
     const int lightPosLoc = GetShaderLocation(lightShader, "lightPos");
+    const int viewPosLoc = GetShaderLocation(lightShader, "viewPos");
 
     const float orbitRadius = 15.0f;
 
@@ -166,6 +167,7 @@ main(void)
             SetShaderValue(lightShader, objectColorLoc, objectColor, SHADER_UNIFORM_VEC3);
             SetShaderValue(lightShader, lightColorLoc, lightColor, SHADER_UNIFORM_VEC3);
             SetShaderValue(lightShader, lightPosLoc, Vector3ToFloat(lightPos), SHADER_UNIFORM_VEC3);
+            SetShaderValue(lightShader, viewPosLoc, Vector3ToFloat(camera.position), SHADER_UNIFORM_VEC3);
 
             const float speed = 1.5f;
             const float angle = GetTime() * speed;
