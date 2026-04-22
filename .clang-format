@@ -1,5 +1,4 @@
-BasedOnStyle: Mozilla
-PointerAlignment: Middle
+BasedOnStyle: Microsoft
 ColumnLimit: 120
 TabWidth: 4
 IndentWidth: 4

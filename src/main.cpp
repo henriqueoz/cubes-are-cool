@@ -1,12 +1,17 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
+#include <filesystem>
 #include <math.h>
 
 #include "external/glfw/deps/glad/gl.h"
 #include "raylib.h"
 #include "raymath.h"
 #include "rlgl.h"
+
+#include "shader.hpp"
+
+namespace fs = std::filesystem;
 
 struct Body3D
 {
@@ -20,22 +25,24 @@ struct CameraLook
 };
 
 static CameraLook cameraLook{};
-static Vector3 cameraFront = { 0.0f, 0.0f, 1.0f };
-static const Vector3 cameraUp = { 0.0f, 1.0f, 0.0f };
+static Vector3 cameraFront = {0.0f, 0.0f, 1.0f};
+static const Vector3 cameraUp = {0.0f, 1.0f, 0.0f};
 
 static bool isPaused = false;
 
-static Matrix MatrixFill(float v) {
-    return {
-        v, v, v, v,
-        v, v, v, v,
-        v, v, v, v,
-        v, v, v, v
-    };
+static Matrix MatrixFill(float v)
+{
+    return {v, v, v, v, v, v, v, v, v, v, v, v, v, v, v, v};
 }
 
-static void
-UpdateBody(Body3D & body)
+static fs::path GetExecutablePath()
+{
+    const char *path = GetApplicationDirectory();
+
+    return fs::path(path);
+}
+
+static void UpdateBody(Body3D &body)
 {
     const float deltaTime = GetFrameTime();
     const float speed = 5.0f * deltaTime;
@@ -44,28 +51,30 @@ UpdateBody(Body3D & body)
     const std::int8_t sideway = IsKeyDown(KEY_D) - IsKeyDown(KEY_A);
     const std::int8_t upward = IsKeyDown(KEY_SPACE) - (IsKeyDown(KEY_LEFT_CONTROL) || IsKeyDown(KEY_LEFT_SHIFT));
 
-    if (foward) {
+    if (foward)
+    {
         const Vector3 fowardMovement = Vector3Scale(cameraFront, speed * foward);
 
         body.position = Vector3Add(body.position, fowardMovement);
     }
 
-    if (sideway) {
+    if (sideway)
+    {
         const Vector3 right = Vector3CrossProduct(cameraFront, cameraUp);
         const Vector3 sideMovement = Vector3Scale(right, speed * sideway);
 
         body.position = Vector3Add(body.position, sideMovement);
     }
 
-    if (upward) {
+    if (upward)
+    {
         const Vector3 upwardMovement = Vector3Scale(cameraUp, speed * upward);
 
         body.position = Vector3Add(body.position, upwardMovement);
     }
 }
 
-static void
-UpdateCamera(Camera3D & camera, const Vector3 position)
+static void UpdateCamera(Camera3D &camera, const Vector3 position)
 {
     const Vector2 mouseDelta = GetMouseDelta();
     const float sensitivity = 0.1f;
@@ -86,17 +95,16 @@ UpdateCamera(Camera3D & camera, const Vector3 position)
     direction.y = sin(cameraLook.pitch * DEG2RAD);
     direction.z = sin(cameraLook.yaw * DEG2RAD) * cos(cameraLook.pitch * DEG2RAD);
 
-    cameraFront = Vector3Normalize({ direction.x, cameraFront.y, direction.z });
+    cameraFront = Vector3Normalize({direction.x, cameraFront.y, direction.z});
 
     camera.target = Vector3Add(camera.position, direction);
 }
 
-int
-main(void)
+int main(void)
 {
     Camera3D camera = {};
-    camera.position = { 0.0f, 0.0f, -20.0f };
-    camera.target = { 0.0f, 0.0f, 0.0f };
+    camera.position = {0.0f, 0.0f, -20.0f};
+    camera.target = {0.0f, 0.0f, 0.0f};
     camera.up = cameraUp;
     camera.fovy = 90.0f;
     camera.projection = CAMERA_CUSTOM;
@@ -106,13 +114,17 @@ main(void)
 
     InitWindow(1280, 720, "Coolest window");
 
-    const Shader lightShader = LoadShader("./resources/shaders/light.vert", "./resources/shaders/light.frag");
-    const Shader sourceShader = LoadShader("./resources/shaders/source.vert", "./resources/shaders/source.frag");
+    fs::path resources = GetExecutablePath() / "resources";
+    fs::path shaderPath = resources / "shaders";
 
-    const int objectColorLoc = GetShaderLocation(lightShader, "objectColor");
+    const Shader lightShader = LoadShader((shaderPath / "light.vert").c_str(), (shaderPath / "light.frag").c_str());
+    const Shader sourceShader = LoadShader((shaderPath / "source.vert").c_str(), (shaderPath / "source.frag").c_str());
+
     const int lightColorLoc = GetShaderLocation(lightShader, "lightColor");
     const int lightPosLoc = GetShaderLocation(lightShader, "lightPos");
     const int viewPosLoc = GetShaderLocation(lightShader, "viewPos");
+
+    const auto cubePhong = GetPhongShaderLocs(lightShader);
 
     const float orbitRadius = 15.0f;
 
@@ -129,7 +141,6 @@ main(void)
     cubeModel.materials[0].shader.locs[SHADER_LOC_MATRIX_VIEW] = GetShaderLocation(lightShader, "view");
     cubeModel.materials[0].shader.locs[SHADER_LOC_MATRIX_MODEL] = GetShaderLocation(lightShader, "model");
 
-
     sourceModel.materials[0].shader = sourceShader;
     sourceModel.materials[0].shader.locs[SHADER_LOC_MATRIX_PROJECTION] = GetShaderLocation(sourceShader, "projection");
     sourceModel.materials[0].shader.locs[SHADER_LOC_MATRIX_VIEW] = GetShaderLocation(sourceShader, "view");
@@ -137,50 +148,71 @@ main(void)
 
     SetTargetFPS(60);
 
-    while (!WindowShouldClose()) {
-        if (IsCursorOnScreen()) {
-            if (IsMouseButtonReleased(MOUSE_LEFT_BUTTON)) {
+    ShaderValues cubeShaderValues;
+    cubeShaderValues.material = {.ambient = {1.0f, 0.5f, 0.31f},
+                                 .diffuse = {1.0f, 0.5f, 0.31f},
+                                 .specular = {0.5f, 0.5f, 0.5f},
+                                 .shineness = 8.0f};
+    cubeShaderValues.light = {.position = lightPos,
+                              .ambient = {0.2f, 0.2f, 0.2f},
+                              .diffuse = {0.5f, 0.5f, 0.5f},
+                              .specular = {1.0f, 1.0f, 1.0f}};
+
+    SetPhongShaderValues(cubePhong, cubeShaderValues);
+
+    while (!WindowShouldClose())
+    {
+        if (IsCursorOnScreen())
+        {
+            if (IsMouseButtonReleased(MOUSE_LEFT_BUTTON))
+            {
                 isPaused = false;
                 DisableCursor();
-            } else if (IsMouseButtonReleased(MOUSE_BUTTON_RIGHT)) {
+            }
+            else if (IsMouseButtonReleased(MOUSE_BUTTON_RIGHT))
+            {
                 isPaused = true;
                 EnableCursor();
             }
         }
 
-        if (!isPaused) {
+        if (!isPaused)
+        {
             UpdateBody(body);
             UpdateCamera(camera, body.position);
         }
 
         BeginDrawing();
-            ClearBackground({ 20, 20, 20, 255 });
+        ClearBackground({20, 20, 20, 255});
 
-            if (isPaused) {
-                DrawRectangle(0, 0, 1280, 720, ColorAlpha(GRAY, 0.5f));
-                DrawText("PAUSED", 0, 0, 24, WHITE);
-            }
+        if (isPaused)
+        {
+            DrawRectangle(0, 0, 1280, 720, ColorAlpha(GRAY, 0.5f));
+            DrawText("PAUSED", 0, 0, 24, WHITE);
+        }
 
-            float objectColor[3] = { 1.0f, 0.5f, 0.31f };
-            float lightColor[3] = { 1.0f, 1.0f, 1.0f };
+        float objectColor[3] = {1.0f, 0.5f, 0.31f};
+        float lightColor[3] = {1.0f, 1.0f, 1.0f};
 
-            SetShaderValue(lightShader, objectColorLoc, objectColor, SHADER_UNIFORM_VEC3);
-            SetShaderValue(lightShader, lightColorLoc, lightColor, SHADER_UNIFORM_VEC3);
-            SetShaderValue(lightShader, lightPosLoc, Vector3ToFloat(lightPos), SHADER_UNIFORM_VEC3);
-            SetShaderValue(lightShader, viewPosLoc, Vector3ToFloat(camera.position), SHADER_UNIFORM_VEC3);
+        SetShaderValue(lightShader, lightColorLoc, lightColor, SHADER_UNIFORM_VEC3);
+        SetShaderValue(lightShader, lightPosLoc, Vector3ToFloat(lightPos), SHADER_UNIFORM_VEC3);
+        SetShaderValue(lightShader, viewPosLoc, Vector3ToFloat(camera.position), SHADER_UNIFORM_VEC3);
 
-            const float speed = 1.5f;
-            const float angle = GetTime() * speed;
+        const float speed = 1.5f;
+        const float angle = GetTime() * speed;
 
-            lightPos.x = orbitRadius * cosf(angle);
-            lightPos.z = orbitRadius * sinf(angle);
+        lightPos.x = orbitRadius * cosf(angle);
+        lightPos.z = orbitRadius * sinf(angle);
 
-            BeginMode3D(camera);
+        cubeShaderValues.light.position = lightPos;
+        SetPhongShaderValues(cubePhong, cubeShaderValues);
 
-                    DrawModel(cubeModel, Vector3Zero(), 1.0f, BLANK);
-                    DrawModel(sourceModel, lightPos, 1.0f, BLANK);
+        BeginMode3D(camera);
 
-            EndMode3D();
+        DrawModel(cubeModel, Vector3Zero(), 1.0f, BLANK);
+        DrawModel(sourceModel, lightPos, 1.0f, BLANK);
+
+        EndMode3D();
         EndDrawing();
     }
 

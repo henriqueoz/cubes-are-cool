@@ -12,8 +12,8 @@ build:
 	@cmake --build $(BUILD_DIR)
 
 run:
-ifeq ($(PLATFORM), windows)
-	@cd $(BUILD_DIR)/bin && $(PROJECT_NAME).exe
+ifeq ($(OS)), windows)
+	./$(BUILD_DIR)/bin/$(PROJECT_NAME).exe
 else
-	@cd $(BUILD_DIR)/bin && ./$(PROJECT_NAME)
+	./$(BUILD_DIR)/bin/$(PROJECT_NAME)
 endif
