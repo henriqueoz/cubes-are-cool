@@ -24,80 +24,13 @@ struct CameraLook
     float pitch;
 };
 
-static CameraLook cameraLook{};
-static Vector3 cameraFront = {0.0f, 0.0f, 1.0f};
-static const Vector3 cameraUp = {0.0f, 1.0f, 0.0f};
-
 static bool isPaused = false;
-
-static Matrix MatrixFill(float v)
-{
-    return {v, v, v, v, v, v, v, v, v, v, v, v, v, v, v, v};
-}
 
 static fs::path GetExecutablePath()
 {
     const char *path = GetApplicationDirectory();
 
     return fs::path(path);
-}
-
-static void UpdateBody(Body3D &body)
-{
-    const float deltaTime = GetFrameTime();
-    const float speed = 5.0f * deltaTime;
-
-    const std::int8_t foward = IsKeyDown(KEY_W) - IsKeyDown(KEY_S);
-    const std::int8_t sideway = IsKeyDown(KEY_D) - IsKeyDown(KEY_A);
-    const std::int8_t upward = IsKeyDown(KEY_SPACE) - (IsKeyDown(KEY_LEFT_CONTROL) || IsKeyDown(KEY_LEFT_SHIFT));
-
-    if (foward)
-    {
-        const Vector3 fowardMovement = Vector3Scale(cameraFront, speed * foward);
-
-        body.position = Vector3Add(body.position, fowardMovement);
-    }
-
-    if (sideway)
-    {
-        const Vector3 right = Vector3CrossProduct(cameraFront, cameraUp);
-        const Vector3 sideMovement = Vector3Scale(right, speed * sideway);
-
-        body.position = Vector3Add(body.position, sideMovement);
-    }
-
-    if (upward)
-    {
-        const Vector3 upwardMovement = Vector3Scale(cameraUp, speed * upward);
-
-        body.position = Vector3Add(body.position, upwardMovement);
-    }
-}
-
-static void UpdateCamera(Camera3D &camera, const Vector3 position)
-{
-    const Vector2 mouseDelta = GetMouseDelta();
-    const float sensitivity = 0.1f;
-
-    camera.position = position;
-
-    cameraLook.yaw += mouseDelta.x * sensitivity;
-    cameraLook.pitch -= mouseDelta.y * sensitivity;
-
-    Vector3 direction{};
-
-    cameraLook.pitch = std::clamp(cameraLook.pitch, -89.0f, 89.0f);
-
-    if (abs(cameraLook.yaw) > 360.0f)
-        cameraLook.yaw = 0.0f;
-
-    direction.x = cos(cameraLook.yaw * DEG2RAD) * cos(cameraLook.pitch * DEG2RAD);
-    direction.y = sin(cameraLook.pitch * DEG2RAD);
-    direction.z = sin(cameraLook.yaw * DEG2RAD) * cos(cameraLook.pitch * DEG2RAD);
-
-    cameraFront = Vector3Normalize({direction.x, cameraFront.y, direction.z});
-
-    camera.target = Vector3Add(camera.position, direction);
 }
 
 int main(void)
@@ -149,12 +82,9 @@ int main(void)
     SetTargetFPS(60);
 
     ShaderValues cubeShaderValues;
-    cubeShaderValues.material = {.ambient = {1.0f, 0.5f, 0.31f},
-                                 .diffuse = {1.0f, 0.5f, 0.31f},
-                                 .specular = {0.5f, 0.5f, 0.5f},
-                                 .shineness = 8.0f};
+    cubeShaderValues.material = {.diffuse = {1.0f, 0.5f, 0.31f}, .specular = {0.5f, 0.5f, 0.5f}, .shineness = 8.0f};
     cubeShaderValues.light = {.position = lightPos,
-                              .ambient = {0.2f, 0.2f, 0.2f},
+                              .ambient = {0.1f, 0.7f, 0.2f},
                               .diffuse = {0.5f, 0.5f, 0.5f},
                               .specular = {1.0f, 1.0f, 1.0f}};
 

@@ -8,7 +8,6 @@
 
 enum MATERIAL_LOC : std::uint8_t
 {
-    MATERIAL_LOC_AMBIENT,
     MATERIAL_LOC_DIFFUSE,
     MATERIAL_LOC_SPECULAR,
     MATERIAL_LOC_SHINENESS
@@ -26,13 +25,12 @@ struct PhongShaderLocations
 {
     Shader shader;
 
-    std::array<std::uint32_t, 4> materialLocs;
+    std::array<std::uint32_t, 3> materialLocs;
     std::array<std::uint32_t, 4> lightLocs;
 };
 
 struct ShaderMaterial
 {
-    Vector3 ambient;
     Vector3 diffuse;
     Vector3 specular;
     float shineness;
@@ -52,18 +50,17 @@ struct ShaderValues
     ShaderLight light;
 };
 
-inline PhongShaderLocations GetPhongShaderLocs(const Shader shader);
+inline PhongShaderLocations get_phong_shader_locs(const Shader shader);
 
-inline void SetPhongShaderValues(const PhongShaderLocations locs, const ShaderValues values);
+inline void set_phong_shader_values(const PhongShaderLocations locs, const ShaderValues values);
 
-inline void SetPhongShaderValuesEx(const PhongShaderLocations locs, const ShaderMaterial material,
-                                   const ShaderLight light);
+inline void set_phong_shader_values_ex(const PhongShaderLocations locs, const ShaderMaterial material,
+                                       const ShaderLight light);
 
-inline PhongShaderLocations GetPhongShaderLocs(const Shader shader)
+inline PhongShaderLocations get_phong_shader_locs(const Shader shader)
 {
     PhongShaderLocations result{.shader = shader};
 
-    result.materialLocs[MATERIAL_LOC_AMBIENT] = GetShaderLocation(shader, "material.ambient");
     result.materialLocs[MATERIAL_LOC_DIFFUSE] = GetShaderLocation(shader, "material.diffuse");
     result.materialLocs[MATERIAL_LOC_SPECULAR] = GetShaderLocation(shader, "material.specular");
     result.materialLocs[MATERIAL_LOC_SHINENESS] = GetShaderLocation(shader, "material.shineness");
@@ -76,16 +73,15 @@ inline PhongShaderLocations GetPhongShaderLocs(const Shader shader)
     return result;
 }
 
-inline void SetPhongShaderValues(const PhongShaderLocations locs, const ShaderValues values)
+inline void set_phong_shader_values(const PhongShaderLocations locs, const ShaderValues values)
 {
-    SetPhongShaderValuesEx(locs, values.material, values.light);
+    set_phong_shader_values_ex(locs, values.material, values.light);
 }
 
-inline void SetPhongShaderValuesEx(const PhongShaderLocations locs, const ShaderMaterial material,
-                                   const ShaderLight light)
+inline void set_phong_shader_values_ex(const PhongShaderLocations locs, const ShaderMaterial material,
+                                       const ShaderLight light)
 {
     const auto &materialLocs = locs.materialLocs;
-    SetShaderValue(locs.shader, materialLocs[MATERIAL_LOC_AMBIENT], &material.ambient, SHADER_UNIFORM_VEC3);
     SetShaderValue(locs.shader, materialLocs[MATERIAL_LOC_DIFFUSE], &material.diffuse, SHADER_UNIFORM_VEC3);
     SetShaderValue(locs.shader, materialLocs[MATERIAL_LOC_SPECULAR], &material.specular, SHADER_UNIFORM_VEC3);
     SetShaderValue(locs.shader, materialLocs[MATERIAL_LOC_SHINENESS], &material.shineness, SHADER_UNIFORM_FLOAT);

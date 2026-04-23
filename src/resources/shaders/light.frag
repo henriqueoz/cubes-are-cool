@@ -1,7 +1,6 @@
 #version 330 core
 
 struct Material {
-    vec3 ambient;
     vec3 diffuse;
     vec3 specular;
     float shineness;
@@ -17,8 +16,6 @@ struct Light {
 in vec3 fragNormal;
 in vec3 fragPos;
 
-uniform vec3 lightColor;
-uniform vec3 lightPos;
 uniform vec3 viewPos;
 
 uniform Material material;
@@ -28,7 +25,7 @@ out vec4 FragColor;
 
 void main() {
     // ambient
-    vec3 ambient = light.ambient * material.ambient;
+    vec3 ambient = light.ambient * material.diffuse;
 
     // diffuse
     vec3 norm = normalize(fragNormal);
