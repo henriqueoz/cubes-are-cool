@@ -6,27 +6,30 @@
 struct Body3D
 {
     Vector3 position;
+    Model model;
 };
 
-struct Camera
+struct PlayerCamera
 {
-    Camera3D view;
+    Vector3 front;
+    Vector3 up;
     struct
     {
         float yaw;
         float pitch;
     } look;
-    Vector3 front;
-    Vector3 up;
+    Camera3D view;
 };
 
 struct Player
 {
     Body3D body;
-    Camera camera;
+    PlayerCamera camera;
 };
 
 Player player_create();
 void player_update(Player &player);
+void player_draw(const Player &player);
+void player_destroy(Player &player);
 
-#endif
+#endif // PLAYER_H_
