@@ -1,14 +1,17 @@
 #include <raylib.h>
 
-#include "game_manager.hpp"
+#include "camera_system.hpp"
 #include "player.hpp"
+#include "system_manager.hpp"
 
 int main(void)
 {
     InitWindow(1280, 720, "Coolest window");
     DisableCursor();
 
-    GameManager gameManager;
+    SystemManager systemManger;
+    systemManger.add(new CameraSystem());
+
     Player player = player_create();
 
     Mesh cubeMesh = GenMeshCube(10.0f, 10.0f, 10.0f);
@@ -18,14 +21,16 @@ int main(void)
 
     while (!WindowShouldClose())
     {
-        player_update(player);
+        const float deltaTime = GetFrameTime();
+
+        player_update(deltaTime, player);
 
         BeginDrawing();
         ClearBackground({20, 20, 20, 255});
 
         BeginMode3D(player.camera.view);
 
-        DrawModel(cubeModel, Vector3(), 1.0f, BLANK);
+        DrawModel(cubeModel, Vector3Zero(), 1.0f, BLUE);
 
         EndMode3D();
 
@@ -35,8 +40,8 @@ int main(void)
     }
 
     player_destroy(player);
+
     UnloadModel(cubeModel);
-    EnableCursor();
     CloseWindow();
 
     return 0;

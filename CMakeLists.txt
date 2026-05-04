@@ -11,17 +11,17 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # Raylib
 set(FETCHCONTENT_QUIET FALSE)
 
+set(RAYLIB_VERSION "6.0")
+set(FETCHCONTENT_QUIET FALSE)
 set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 set(BUILD_GAMES    OFF CACHE BOOL "" FORCE)
 
-set(RAYLIB_VERSION 6.0)
-#set(raylib_VERBOSE 1)
-
 FetchContent_Declare(
     raylib
-    DOWNLOAD_EXTRACT_TIMESTAMP OFF
-    URL https://github.com/raysan5/raylib/archive/refs/tags/${RAYLIB_VERSION}.tar.gz
-    FIND_PACKAGE_ARGS
+    GIT_REPOSITORY "https://github.com/raysan5/raylib.git"
+    GIT_TAG "${RAYLIB_VERSION}"
+    GIT_PROGRESS TRUE
+    GIT_SHALLOW TRUE
 )
 
 FetchContent_MakeAvailable(raylib)
@@ -39,10 +39,12 @@ target_link_libraries(${PROJECT_NAME} PRIVATE raylib)
 # Commands and Properties
 add_custom_command(
     TARGET ${PROJECT_NAME} POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/src/resources $<TARGET_FILE_DIR:${PROJECT_NAME}>/resources
+    COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_SOURCE_DIR}/src/resources $<TARGET_FILE_DIR:${PROJECT_NAME}>/resources
 )
 
-set_target_properties(${PROJECT_NAME} PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+set_target_properties(
+    ${PROJECT_NAME} PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+)
 
 set_property(TARGET ${PROJECT_NAME} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY $<TARGET_FILE_DIR:${PROJECT_NAME}>)

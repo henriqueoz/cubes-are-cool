@@ -2,12 +2,7 @@
 #include <cmath>
 #include <cstdint>
 
-#include "raylib.h"
-
 #include "player.hpp"
-
-static Vector3 cameraFront = {0.0f, 0.0f, 1.0f};
-static const Vector3 cameraUp = {0.0f, 1.0f, 0.0f};
 
 static void player_update_camera(PlayerCamera &camera, const Vector3 position)
 {
@@ -30,14 +25,13 @@ static void player_update_camera(PlayerCamera &camera, const Vector3 position)
     direction.y = sin(camera.look.pitch * DEG2RAD);
     direction.z = sin(camera.look.yaw * DEG2RAD) * cos(camera.look.pitch * DEG2RAD);
 
-    cameraFront = Vector3Normalize({direction.x, cameraFront.y, direction.z});
+    camera.front = Vector3Normalize({direction.x, camera.front.y, direction.z});
 
     camera.view.target = Vector3Add(camera.view.position, direction);
 }
 
-static inline void player_update_body(Body3D &body)
+static inline void handle_movement(const float deltaTime, Body3D &body, const PlayerCamera &camera)
 {
-    const float deltaTime = GetFrameTime();
     const float speed = 5.0f * deltaTime;
 
     const std::int8_t foward = IsKeyDown(KEY_W) - IsKeyDown(KEY_S);
@@ -46,14 +40,14 @@ static inline void player_update_body(Body3D &body)
 
     if (foward)
     {
-        const Vector3 fowardMovement = Vector3Scale(cameraFront, speed * foward);
+        const Vector3 fowardMovement = Vector3Scale(camera.front, speed * foward);
 
         body.position = Vector3Add(body.position, fowardMovement);
     }
 
     if (sideway)
     {
-        const Vector3 right = Vector3CrossProduct(cameraFront, cameraUp);
+        const Vector3 right = Vector3CrossProduct(camera.front, camera.up);
         const Vector3 sideMovement = Vector3Scale(right, speed * sideway);
 
         body.position = Vector3Add(body.position, sideMovement);
@@ -61,10 +55,19 @@ static inline void player_update_body(Body3D &body)
 
     if (upward)
     {
-        const Vector3 upwardMovement = Vector3Scale(cameraUp, speed * upward);
+        const Vector3 upwardMovement = Vector3Scale(camera.up, speed * upward);
 
         body.position = Vector3Add(body.position, upwardMovement);
     }
+}
+
+static inline void player_update_body(const float deltaTime, Body3D &body, const PlayerCamera &camera)
+{
+    handle_movement(deltaTime, body, camera);
+
+    const float gravitySpeed = body.mass * 9.8f * deltaTime;
+
+    // body.position.y -= gravitySpeed;
 }
 
 static Model get_player_model()
@@ -78,10 +81,13 @@ Player player_create()
 {
     Player player{};
 
-    player.body = {
-        .position = {0.0f, 0.0f, -20.0f},
-        .model = get_player_model(),
-    };
+    const Vector3 position = Vector3{0.0f, 0.0f, -20.0f};
+
+    player.body = {.position = position,
+                   .front = Vector3{0.0f, 0.0f, 1.0f},
+                   .model = get_player_model(),
+                   .boundingBox = BoundingBox(position, Vector3{2.0f, 2.0f, 2.0f}),
+                   .mass = 1.0f};
 
     player.camera = {
         .front = Vector3{0.0f, 0.0f, 1.0f},
@@ -93,7 +99,7 @@ Player player_create()
             },
         .view =
             {
-                .position = player.body.position,
+                .position = Vector3Subtract(position, Vector3{0.0f, 0.0f, 20.0f}),
                 .target = Vector3Add(player.body.position, Vector3{0.0f, 0.0f, 1.0f}),
                 .up = Vector3{0.0f, 1.0f, 0.0f},
                 .fovy = 90.0f,
@@ -104,17 +110,17 @@ Player player_create()
     return player;
 }
 
-void player_update(Player &player)
+void player_update(const float deltaTime, Player &player)
 {
     player_update_camera(player.camera, player.body.position);
-    player_update_body(player.body);
+    player_update_body(deltaTime, player.body, player.camera);
 }
 
 void player_draw(const Player &player)
 {
+    player.body.boundingBox.render();
 }
 
 void player_destroy(Player &player)
 {
-    UnloadModel(player.body.model);
 }
