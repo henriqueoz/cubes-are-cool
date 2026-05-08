@@ -4,7 +4,7 @@
 
 #include "player.hpp"
 
-static void player_update_camera(PlayerCamera &camera, const Vector3 position)
+static void player_update_camera(PlayerCameraFirstPerson &camera, const Vector3 position)
 {
     const Vector2 mouseDelta = GetMouseDelta();
     const float sensitivity = 0.1f;
@@ -30,7 +30,7 @@ static void player_update_camera(PlayerCamera &camera, const Vector3 position)
     camera.view.target = Vector3Add(camera.view.position, direction);
 }
 
-static inline void handle_movement(const float deltaTime, Body3D &body, const PlayerCamera &camera)
+static inline void handle_movement(const float deltaTime, Body3D &body, const PlayerCameraFirstPerson &camera)
 {
     const float speed = 5.0f * deltaTime;
 
@@ -61,7 +61,7 @@ static inline void handle_movement(const float deltaTime, Body3D &body, const Pl
     }
 }
 
-static inline void player_update_body(const float deltaTime, Body3D &body, const PlayerCamera &camera)
+static inline void player_update_body(const float deltaTime, Body3D &body, const PlayerCameraFirstPerson &camera)
 {
     handle_movement(deltaTime, body, camera);
 
@@ -86,10 +86,10 @@ Player player_create()
     player.body = {.position = position,
                    .front = Vector3{0.0f, 0.0f, 1.0f},
                    .model = get_player_model(),
-                   .boundingBox = BoundingBox(position, Vector3{2.0f, 2.0f, 2.0f}),
+                   .boundingBox = engine::BoundingBox(position, Vector3{2.0f, 2.0f, 2.0f}),
                    .mass = 1.0f};
 
-    player.camera = {
+    player.firstPersonCamera = {
         .front = Vector3{0.0f, 0.0f, 1.0f},
         .up = Vector3{0.0f, 1.0f, 0.0f},
         .look =
@@ -112,8 +112,8 @@ Player player_create()
 
 void player_update(const float deltaTime, Player &player)
 {
-    player_update_camera(player.camera, player.body.position);
-    player_update_body(deltaTime, player.body, player.camera);
+    player_update_camera(player.firstPersonCamera, player.body.position);
+    player_update_body(deltaTime, player.body, player.firstPersonCamera);
 }
 
 void player_draw(const Player &player)

@@ -2,6 +2,8 @@
 
 #include "bounding_box.hpp"
 
+namespace engine
+{
 BoundingBox::BoundingBox(Vector3 position, Vector3 size)
 {
     this->position = position;
@@ -12,3 +14,4 @@ void BoundingBox::render() const
 {
     DrawCubeWiresV(this->position, this->size, RED);
 }
+}; // namespace engine

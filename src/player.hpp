@@ -1,23 +1,43 @@
 #ifndef PLAYER_H_
 #define PLAYER_H_
 
+#include <cstdint>
+
 #include <raylib.h>
 #include <raymath.h>
 
 #include "bounding_box.hpp"
+
+enum class PlayerCameraMode : std::uint8_t
+{
+    FIRST_PERSON,
+    THIRD_PERSON
+};
 
 struct Body3D
 {
     Vector3 position;
     Vector3 front;
     Model model;
-    BoundingBox boundingBox;
+    engine::BoundingBox boundingBox;
     float mass;
 };
 
-struct PlayerCamera
+struct PlayerCameraFirstPerson
 {
     Vector3 front;
+    Vector3 up;
+    struct
+    {
+        float yaw;
+        float pitch;
+    } look;
+    Camera3D view;
+};
+
+struct PlayerCameraThirdPerson
+{
+    float distanceToPlayer;
     Vector3 up;
     struct
     {
@@ -30,7 +50,8 @@ struct PlayerCamera
 struct Player
 {
     Body3D body;
-    PlayerCamera camera;
+    PlayerCameraFirstPerson firstPersonCamera;
+    PlayerCameraThirdPerson thirdPersonCamera;
 };
 
 Player player_create();

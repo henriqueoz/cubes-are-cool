@@ -1,8 +1,10 @@
-#ifndef BOUDING_BOX_H_
-#define BOUDING_BOX_H_
+#ifndef BOUNDING_BOX_H_
+#define BOUNDING_BOX_H_
 
 #include <raymath.h>
 
+namespace engine
+{
 class BoundingBox
 {
   public:
@@ -19,5 +21,6 @@ class BoundingBox
 
   private:
 };
+} // namespace engine
 
-#endif // BOUDING_BOX_H_
+#endif // BOUNDING_BOX_H_

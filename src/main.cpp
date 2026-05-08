@@ -30,7 +30,9 @@ int main(void)
 
         BeginMode3D(player.camera.view);
 
-        DrawModel(cubeModel, Vector3Zero(), 1.0f, BLUE);
+        DrawPlane(Vector3Zero(), Vector2{100.0f, 100.0f}, DARKGRAY);
+
+        DrawModel(cubeModel, {0.0f, 5.0f, 0.0f}, 1.0f, BLUE);
 
         EndMode3D();
 

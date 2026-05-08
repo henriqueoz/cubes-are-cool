@@ -4,19 +4,8 @@
 #include <raylib.h>
 #include <raymath.h>
 
+#include "camera.hpp"
 #include "isystem.hpp"
-
-struct CameraState
-{
-    Vector3 front;
-    Vector3 up;
-    struct
-    {
-        float yaw;
-        float pitch;
-    } look;
-    Camera3D view;
-};
 
 class CameraSystem : public ISystem
 {
